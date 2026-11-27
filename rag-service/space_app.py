@@ -1,9 +1,9 @@
 """Entry point for a free Hugging Face *Gradio* Space.
 
-Docker Spaces are paid; Gradio Spaces are free and run this file with Python. On a Space,
-port 7860 must be served by Gradio's own launcher (running a separate uvicorn on 7860
-fails with "address already in use"), so Gradio starts the server and the PathWise API
-routes (/ask, /reindex/..., health at /) are added to Gradio's FastAPI app.
+Docker Spaces are paid; Gradio Spaces are free and run this file with Python. Gradio's
+own launcher starts the server (with server-side rendering off, so Python serves port
+7860 directly), and the PathWise API routes (/ask, /reindex/..., health at /) are added
+to Gradio's FastAPI app.
 
 Locally you can still run the API on its own: `uvicorn app.main:app --port 7860`.
 """
@@ -45,6 +45,9 @@ if __name__ == "__main__":
         server_port=int(os.environ.get("GRADIO_SERVER_PORT", "7860")),
         prevent_thread_lock=True,
         show_error=True,
+        # Gradio's server-side rendering puts a Node server on 7860 that only forwards
+        # Gradio's own paths, which would hide /ask and /reindex. Serve Python directly.
+        ssr_mode=False,
     )
     add_api_routes(demo.server_app if getattr(demo, "server_app", None) else demo.app)
     print("PathWise RAG API routes added to the Gradio server", flush=True)

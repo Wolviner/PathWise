@@ -6,6 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import aj from "../lib/arcjet";
 import { GoogleGenAI } from "@google/genai";
+import { requestReindex } from "../lib/rag";
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -75,6 +76,7 @@ export async function createTransaction(data) {
 
     revalidatePath("/dashboard");
     revalidatePath(`/account/${transaction.accountId}`);
+    await requestReindex(user.id);
     return { success: true, data: serializeAmount(transaction) };
   } catch (error) {
     throw new Error(error.message);
@@ -298,6 +300,7 @@ export async function updateTransaction(id, data) {
 
     revalidatePath("/dashboard");
     revalidatePath(`/account/${data.accountId}`);
+    await requestReindex(user.id);
 
     return { success: true, data: serializeAmount(transaction) };
   } catch (error) {

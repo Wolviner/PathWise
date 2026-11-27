@@ -78,6 +78,26 @@ model Budget {
   @@map("budgets")
 }
 
+// Knowledge base for PathWise Copilot (RAG). Written by the rag-service (Python),
+// never by the Next.js app. userId is a users.id, or "shared" for the budgeting guides.
+model RagChunk {
+  id        String                     @id @default(uuid())
+  userId    String                     @map("user_id")
+  variant   String                     @default("llm") // "llm" (production) or "basic" (eval baseline)
+  docType   String                     @map("doc_type")
+  source    String
+  title     String
+  month     String?
+  headline  String
+  summary   String
+  content   String
+  embedding Unsupported("vector(768)")?
+  createdAt DateTime                   @default(now()) @map("created_at")
+
+  @@index([userId, variant])
+  @@map("rag_chunks")
+}
+
 enum TransactionType {
   INCOME
   EXPENSE

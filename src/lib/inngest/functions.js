@@ -3,6 +3,48 @@ import { db } from "../prisma";
 import { inngest } from "./client";
 import EmailTemplate from "../../emails/template";
 import { GoogleGenAI } from "@google/genai";
+import { ragFetch } from "../rag";
+
+// ---------- PathWise Copilot (RAG) ----------
+
+// Rebuild one user's knowledge base. Debounced: a burst of edits triggers a single
+// rebuild 2 minutes after the last change. The RAG service queues the work and returns at once.
+export const reindexUserKnowledge = inngest.createFunction(
+  {
+    id: "rag-reindex-user",
+    name: "Copilot: Reindex User Knowledge",
+    debounce: { key: "event.data.userId", period: "2m" },
+    concurrency: { limit: 2 },
+  },
+  { event: "rag/reindex.requested" },
+  async ({ event, step }) => {
+    if (!event?.data?.userId) return { error: "Missing userId" };
+    return await step.run("queue-reindex", () =>
+      ragFetch(`/reindex/${encodeURIComponent(event.data.userId)}`, { timeoutMs: 90_000 }),
+    );
+  },
+);
+
+// Nightly safety net: reindex everyone, make sure the shared guides exist, and
+// remove chunks of deleted users.
+export const reindexAllUsers = inngest.createFunction(
+  { id: "rag-reindex-all", name: "Copilot: Nightly Reindex" },
+  { cron: "30 2 * * *" },
+  async ({ step }) => {
+    await step.run("shared-guides", () =>
+      ragFetch("/reindex-shared?only_if_missing=true", { timeoutMs: 120_000 }),
+    );
+    await step.run("purge-orphans", () => ragFetch("/maintenance/purge-orphans"));
+    const users = await step.run("fetch-users", () => db.user.findMany({ select: { id: true } }));
+    if (users.length > 0) {
+      await step.sendEvent(
+        "request-reindex",
+        users.map((u) => ({ name: "rag/reindex.requested", data: { userId: u.id } })),
+      );
+    }
+    return { users: users.length };
+  },
+);
 
 // Trigger recurring transactions with batching
 export const triggerRecurringTransactions = inngest.createFunction(
@@ -121,6 +163,11 @@ export const processRecurringTransaction = inngest.createFunction(
           },
         });
       });
+    });
+
+    await step.sendEvent("copilot-reindex", {
+      name: "rag/reindex.requested",
+      data: { userId: event.data.userId },
     });
   },
 );

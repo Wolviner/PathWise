@@ -1,0 +1,9 @@
+.env
+!.env.example
+__pycache__/
+*.pyc
+.pytest_cache/
+.demo-*.json
+# generated from a real user's data; keep out of git
+evaluation/tests.*.jsonl
+evaluation/results/

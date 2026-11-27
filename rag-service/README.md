@@ -76,11 +76,14 @@ and Inngest calls `/reindex` 2 minutes after a user's data changes and every nig
 
 1. Create a Space: **New Space**, SDK **Docker**, template **Blank**, hardware **CPU basic (free)**.
 2. In the Space's **Settings → Variables and secrets**, add the secrets `DATABASE_URL`, `GEMINI_API_KEY` and `RAG_SHARED_SECRET`.
-3. Push this folder as the Space's repo (from the PathWise repo root):
-   ```bash
-   git subtree push --prefix rag-service https://huggingface.co/spaces/<hf-user>/<space-name> main
+3. Push this folder as the Space's repo, from the PathWise repo root. The Space starts with a template
+   commit, so the first push replaces it with `--force`:
+   ```powershell
+   $sha = git subtree split --prefix rag-service HEAD
+   git push https://huggingface.co/spaces/<hf-user>/<space-name> "${sha}:refs/heads/main" --force
    ```
-   Git asks for your Hugging Face username and an access token with **write** permission.
+   Git asks for your Hugging Face username and, as the password, an access token with **write** permission.
+   Run the same two lines again to deploy later changes.
 4. When the build finishes, open `https://<hf-user>-<space-name>.hf.space/`. It should return `{"status":"ok"}`.
 
 Free Spaces sleep after a period without traffic. The first request after that takes longer while the Space wakes up.

@@ -8,7 +8,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { LayoutDashboard, PenBox } from "lucide-react";
+import { Bot, LayoutDashboard, PenBox } from "lucide-react";
 import { checkUser } from "../lib/checkUser.js";
 
 const Header = async () => {
@@ -36,6 +36,13 @@ const Header = async () => {
               <Button variant="outline">
                 <LayoutDashboard size={18} />
                 <span className="hidden md:inline">Dashboard</span>
+              </Button>
+            </Link>
+
+            <Link href="/assistant" className="flex items-center gap-2">
+              <Button variant="outline">
+                <Bot size={18} />
+                <span className="hidden md:inline">Copilot</span>
               </Button>
             </Link>
 

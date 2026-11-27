@@ -3,6 +3,7 @@
 import { db } from "../lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { requestReindex } from "../lib/rag";
 
 const serializeDecimal = (obj) => {
   const serialized = { ...obj };
@@ -104,6 +105,7 @@ export async function bulkDeleteTransactions(transactionIds) {
 
     revalidatePath("/dashboard");
     revalidatePath("/account/[id]");
+    await requestReindex(user.id);
 
     return { success: true };
   } catch (error) {

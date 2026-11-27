@@ -2,6 +2,7 @@
 
 import { db } from "../lib/prisma";
 import { subDays } from "date-fns";
+import { requestReindex } from "../lib/rag";
 
 const ACCOUNT_ID = "e07c5c49-c45c-4146-b82e-166090452a6c";
 const USER_ID = "babedacc-64ea-4ca5-bd14-60532686c647";
@@ -97,6 +98,8 @@ export async function seedTransactions() {
         data: { balance: totalBalance },
       });
     });
+
+    await requestReindex(USER_ID);
 
     return {
       success: true,

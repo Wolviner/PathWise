@@ -14,6 +14,18 @@ import gradio as gr
 
 from app.main import app as api
 
+# Free Gradio Spaces now run on ZeroGPU hardware, which refuses to start unless the app
+# declares at least one @spaces.GPU function. This service never needs a GPU (all model
+# calls go to the Gemini API), so the function below is never called and uses no GPU time.
+try:
+    import spaces
+
+    @spaces.GPU(duration=1)
+    def _zerogpu_placeholder():
+        return None
+except ImportError:  # not on ZeroGPU (local runs, CPU hardware)
+    pass
+
 with gr.Blocks(title="PathWise RAG") as demo:
     gr.Markdown(
         "## PathWise RAG service\n"

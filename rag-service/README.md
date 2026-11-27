@@ -3,8 +3,9 @@ title: PathWise RAG
 emoji: 💸
 colorFrom: blue
 colorTo: green
-sdk: docker
-app_port: 7860
+sdk: gradio
+app_file: space_app.py
+python_version: "3.12"
 pinned: false
 short_description: RAG service behind the PathWise Copilot
 ---
@@ -12,7 +13,8 @@ short_description: RAG service behind the PathWise Copilot
 # PathWise RAG service
 
 The retrieval-augmented generation (RAG) service behind **PathWise Copilot**, which answers questions about a user's own money with cited sources.
-It's a small FastAPI app that runs as a Docker Space on Hugging Face (free) and uses:
+It's a small FastAPI app that runs on a free **Gradio** Space on Hugging Face (`space_app.py`;
+Docker Spaces are paid). It can also run as a Docker container (`Dockerfile`). It uses:
 
 - **Gemini** (Google AI Studio, free tier) for the LLM calls and embeddings
 - **pgvector** in PathWise's existing **Supabase Postgres** as the vector store (no extra database)
@@ -74,7 +76,9 @@ and Inngest calls `/reindex` 2 minutes after a user's data changes and every nig
 
 ## Deploy to Hugging Face Spaces
 
-1. Create a Space: **New Space**, SDK **Docker**, template **Blank**, hardware **CPU basic (free)**.
+1. Create a Space: **New Space**, SDK **Gradio**, template **Blank**, hardware **CPU basic (free)**, visibility **Public**.
+   The front matter at the top of this README tells the Space to run `space_app.py`, which serves the API on port 7860
+   with a small status page at `/ui`.
 2. In the Space's **Settings → Variables and secrets**, add the secrets `DATABASE_URL`, `GEMINI_API_KEY` and `RAG_SHARED_SECRET`.
 3. Push this folder as the Space's repo, from the PathWise repo root. The Space starts with a template
    commit, so the first push replaces it with `--force`:
